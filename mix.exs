@@ -39,7 +39,9 @@ defmodule Plaid.Mixfile do
       {:ex_doc, ">= 0.0.0", only: [:dev], runtime: false},
       {:dialyxir, "~> 1.2", only: [:dev], runtime: false},
       {:telemetry, "~> 1.2"},
-      {:mox, "~> 1.0", only: :test}
+      {:mox, "~> 1.0", only: :test},
+      {:ssl_verify_fun, "~> 1.1.0",
+       [env: :prod, hex: "ssl_verify_fun", repo: "hexpm", manager: :rebar3, override: true]}
     ]
   end
 
