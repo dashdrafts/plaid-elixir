@@ -41,7 +41,8 @@ defmodule Plaid.Mixfile do
       {:telemetry, "~> 1.2"},
       {:mox, "~> 1.0", only: :test},
       {:ssl_verify_fun, "~> 1.1.0",
-       [env: :prod, hex: "ssl_verify_fun", repo: "hexpm", manager: :rebar3, override: true]}
+       [env: :prod, hex: "ssl_verify_fun", repo: "hexpm", manager: :rebar3, override: true]},
+      {:confex, "~> 3.5.0"}
     ]
   end
 

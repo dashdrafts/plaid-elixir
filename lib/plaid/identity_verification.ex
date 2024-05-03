@@ -2,6 +2,33 @@ defmodule Plaid.IdentityVerification do
   @moduledoc """
   Functions for managing identity verification data.
   """
+  alias Plaid.IdentityVerification.User.IDNumber
+  alias Plaid.IdentityVerification.User.Name
+  alias Plaid.IdentityVerification.DocumentaryVerification.Document.Images
+  alias Plaid.IdentityVerification.RiskCheck.IdentityAbuseSignals.StolenIdentity
+  alias Plaid.IdentityVerification.RiskCheck.IdentityAbuseSignals.SyntheticIdentity
+  alias Plaid.IdentityVerification.RiskCheck.IdentityAbuseSignals
+  alias Plaid.IdentityVerification.RiskCheck.Device
+  alias Plaid.IdentityVerification.RiskCheck.RiskCheckPhone
+  alias Plaid.IdentityVerification.RiskCheck.RiskCheckEmail
+  alias Plaid.IdentityVerification.RiskCheck.Behavior
+
+  alias Plaid.IdentityVerification.DocumentaryVerification.Document.DocumentAnalysis.DocumentAnalysisExtractedData
+
+  alias Plaid.IdentityVerification.DocumentaryVerification.Document.ExtractedData.ExtractedDataAddress
+
+  alias Plaid.IdentityVerification.DocumentaryVerification.Document.DocumentAnalysis
+  alias Plaid.IdentityVerification.SelfieCheck.SelfieCheckAnalysis
+  alias Plaid.IdentityVerification.KYCCheck.KYCPhoneNumber
+  alias Plaid.IdentityVerification.KYCCheck.KYCIDNumber
+  alias Plaid.IdentityVerification.KYCCheck.KYCDOB
+  alias Plaid.IdentityVerification.KYCCheck.KYCName
+  alias Plaid.IdentityVerification.KYCCheck.KYCAddress
+  alias Plaid.IdentityVerification.DocumentaryVerification.Document.ExtractedData
+  alias Plaid.IdentityVerification.SelfieCheck.Capture
+  alias Plaid.IdentityVerification.SelfieCheck.Selfie
+  alias Plaid.IdentityVerification.DocumentaryVerification.Document
+  alias Plaid.IdentityVerification.User.Address
   alias Plaid.Client.Request
   alias Plaid.Client
 
@@ -184,66 +211,102 @@ defmodule Plaid.IdentityVerification do
               attempt: integer(),
               images: Images.t(),
               extracted_data: ExtractedData.t(),
-              analysis: Analysis.t(),
+              analysis: DocumentAnalysis.t(),
               redacted_at: String.t()
             }
-    end
 
-    defmodule Images do
-      @derive Jason.Encoder
-      defstruct [
-        :original_front,
-        :original_back,
-        :cropped_front,
-        :cropped_back,
-        :face
-      ]
+      defmodule Images do
+        @derive Jason.Encoder
+        defstruct [
+          :original_front,
+          :original_back,
+          :cropped_front,
+          :cropped_back,
+          :face
+        ]
 
-      @type t :: %__MODULE__{
-              original_front: String.t(),
-              original_back: String.t(),
-              cropped_front: String.t(),
-              cropped_back: String.t(),
-              face: String.t()
-            }
-    end
+        @type t :: %__MODULE__{
+                original_front: String.t(),
+                original_back: String.t(),
+                cropped_front: String.t(),
+                cropped_back: String.t(),
+                face: String.t()
+              }
+      end
 
-    defmodule ExtractedData do
-      @derive Jason.Encoder
-      defstruct [
-        :id_number,
-        :category,
-        :expiration_date,
-        :issuing_country,
-        :issuing_region,
-        :date_of_birth,
-        :address
-      ]
+      defmodule ExtractedData do
+        @derive Jason.Encoder
+        defstruct [
+          :id_number,
+          :category,
+          :expiration_date,
+          :issuing_country,
+          :issuing_region,
+          :date_of_birth,
+          :address
+        ]
 
-      @type t :: %__MODULE__{
-              id_number: String.t(),
-              category: String.t(),
-              expiration_date: String.t(),
-              issuing_country: String.t(),
-              issuing_region: String.t(),
-              date_of_birth: String.t(),
-              address: Address.t()
-            }
-    end
+        @type t :: %__MODULE__{
+                id_number: String.t(),
+                category: String.t(),
+                expiration_date: String.t(),
+                issuing_country: String.t(),
+                issuing_region: String.t(),
+                date_of_birth: String.t(),
+                address: ExtractedDataAddress.t()
+              }
 
-    defmodule Analysis do
-      @derive Jason.Encoder
-      defstruct [
-        :authenticity,
-        :image_quality,
-        :extracted_data
-      ]
+        defmodule ExtractedDataAddress do
+          @derive Jason.Encoder
+          defstruct [
+            :street,
+            :city,
+            :region,
+            :postal_code,
+            :country
+          ]
 
-      @type t :: %__MODULE__{
-              authenticity: String.t(),
-              image_quality: String.t(),
-              extracted_data: ExtractedData.t()
-            }
+          @type t :: %__MODULE__{
+                  street: String.t(),
+                  city: String.t(),
+                  region: String.t(),
+                  postal_code: String.t(),
+                  country: String.t()
+                }
+        end
+      end
+
+      defmodule DocumentAnalysis do
+        @derive Jason.Encoder
+        defstruct [
+          :authenticity,
+          :image_quality,
+          :extracted_data
+        ]
+
+        @type t :: %__MODULE__{
+                authenticity: String.t(),
+                image_quality: String.t(),
+                extracted_data: DocumentAnalysisExtractedData.t()
+              }
+
+        defmodule DocumentAnalysisExtractedData do
+          @derive Jason.Encoder
+          defstruct [
+            :name,
+            :date_of_birth,
+            :expiration_date,
+            :issuing_country
+          ]
+
+          @type t :: %__MODULE__{
+                  name: String.t(),
+                  date_of_birth: String.t(),
+                  expiration_date: String.t(),
+                  issuing_country: String.t()
+                }
+        end
+      end
     end
   end
 
@@ -276,7 +339,7 @@ defmodule Plaid.IdentityVerification do
               status: String.t(),
               attempt: integer(),
               capture: Capture.t(),
-              analysis: Analysis.t()
+              analysis: SelfieCheckAnalysis.t()
             }
     end
 
@@ -290,7 +353,7 @@ defmodule Plaid.IdentityVerification do
             }
     end
 
-    defmodule Analysis do
+    defmodule SelfieCheckAnalysis do
       @derive Jason.Encoder
       defstruct [:document_comparison]
 
@@ -391,8 +454,8 @@ defmodule Plaid.IdentityVerification do
     @type t :: %__MODULE__{
             status: String.t(),
             behavior: Behavior.t(),
-            email: Email.t(),
-            phone: Phone.t(),
+            email: RiskCheckEmail.t(),
+            phone: RiskCheckPhone.t(),
             devices: [Device.t()],
             identity_abuse_signals: IdentityAbuseSignals.t()
           }
@@ -408,7 +471,7 @@ defmodule Plaid.IdentityVerification do
             }
     end
 
-    defmodule Email do
+    defmodule RiskCheckEmail do
       @derive Jason.Encoder
       defstruct [
         :is_deliverable,
@@ -437,7 +500,7 @@ defmodule Plaid.IdentityVerification do
             }
     end
 
-    defmodule Phone do
+    defmodule RiskCheckPhone do
       @derive Jason.Encoder
       defstruct [:linked_services]
 
@@ -503,12 +566,37 @@ defmodule Plaid.IdentityVerification do
       %{
         as: %Plaid.IdentityVerification{
           template: %Template{},
-          user: %User{},
+          user: %User{name: %Name{}, address: %Address{}, id_number: %IDNumber{}},
           steps: %Steps{},
-          documentary_verification: %DocumentaryVerification{},
-          selfie_check: %SelfieCheck{},
-          kyc_check: %KYCCheck{},
-          risk_check: %RiskCheck{}
+          documentary_verification: %DocumentaryVerification{
+            documents: [
+              %Document{
+                images: %Images{},
+                extracted_data: %ExtractedData{address: %ExtractedDataAddress{}},
+                analysis: %DocumentAnalysis{extracted_data: %DocumentAnalysisExtractedData{}}
+              }
+            ]
+          },
+          selfie_check: %SelfieCheck{
+            selfies: [%Selfie{capture: %Capture{}, analysis: %SelfieCheckAnalysis{}}]
+          },
+          kyc_check: %KYCCheck{
+            address: %KYCAddress{},
+            name: %KYCName{},
+            date_of_birth: %KYCDOB{},
+            id_number: %KYCIDNumber{},
+            phone_number: %KYCPhoneNumber{}
+          },
+          risk_check: %RiskCheck{
+            behavior: %Behavior{},
+            email: %RiskCheckEmail{},
+            phone: %RiskCheckPhone{},
+            devices: [%Device{}],
+            identity_abuse_signals: %IdentityAbuseSignals{
+              synthetic_identity: %SyntheticIdentity{},
+              stolen_identity: %StolenIdentity{}
+            }
+          }
         }
       }
     )

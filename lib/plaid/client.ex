@@ -92,7 +92,7 @@ defmodule Plaid.Client do
   end
 
   defp get_base_url(config) do
-    case config[:root_uri] || Application.get_env(:plaid, :root_uri) do
+    case config[:root_uri] || Confex.get_env(:plaid, :root_uri) do
       nil ->
         raise Plaid.MissingRootUriError
 
@@ -102,7 +102,7 @@ defmodule Plaid.Client do
   end
 
   defp get_client_id(config) do
-    case config[:client_id] || Application.get_env(:plaid, :client_id) do
+    case config[:client_id] || Confex.get_env(:plaid, :client_id) do
       nil ->
         raise Plaid.MissingClientIdError
 
@@ -112,7 +112,7 @@ defmodule Plaid.Client do
   end
 
   defp get_secret(config) do
-    case config[:secret] || Application.get_env(:plaid, :secret) do
+    case config[:secret] || Confex.get_env(:plaid, :secret) do
       nil ->
         raise Plaid.MissingSecretError
 
@@ -122,7 +122,7 @@ defmodule Plaid.Client do
   end
 
   defp get_middleware(config) do
-    case config[:middleware] || Application.get_env(:plaid, :middleware) || [] do
+    case config[:middleware] || Confex.get_env(:plaid, :middleware) || [] do
       middleware when is_list(middleware) ->
         middleware
 
@@ -143,12 +143,12 @@ defmodule Plaid.Client do
   end
 
   defp get_adapter(config) do
-    config[:adapter] || Application.get_env(:plaid, :adapter) || Tesla.Adapter.Hackney
+    config[:adapter] || Confex.get_env(:plaid, :adapter) || Tesla.Adapter.Hackney
   end
 
   defp get_http_options(config) do
     Keyword.merge(
-      Application.get_env(:plaid, :http_options, []),
+      Confex.get_env(:plaid, :http_options, []),
       config[:http_options] || []
     )
   end
