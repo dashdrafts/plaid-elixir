@@ -549,6 +549,17 @@ defmodule Plaid.IdentityVerification do
     end
   end
 
+  @spec create(params, config) :: {:ok, Plaid.IdentityVerification.t()} | error
+  def create(params, config \\ %{}) do
+    c = config[:client] || Plaid
+
+    Request
+    |> struct(method: :post, endpoint: "identity_verification/create", body: params)
+    |> Request.add_metadata(config)
+    |> c.send_request(Client.new(config))
+    |> c.handle_response(&map_identity_verification(&1))
+  end
+
   @spec get(params, config) :: {:ok, Plaid.IdentityVerification.t()} | error
   def get(params, config \\ %{}) do
     c = config[:client] || Plaid
